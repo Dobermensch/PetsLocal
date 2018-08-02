@@ -1,9 +1,17 @@
 import os
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from config import DevelopmentConfig as devConfig
 
+##lol = config.DevelopmentConfig()
 
 app = Flask(__name__)
-app.config.from_object(os.environ['APP_SETTINGS'])
+app.config.from_object(os.getenv('APP_SETTINGS', devConfig))
+##app.config['APP_SETTINGS'] = devConfig
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+from models import Pet, Customer, CustomerPreference
 
 
 @app.route('/')
