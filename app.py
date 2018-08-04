@@ -1,8 +1,8 @@
 import os
-from flask import Flask, render_template, send_file, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from config import DevelopmentConfig as devConfig
-from sqlalchemy.dialects.postgresql import insert
+##from sqlalchemy.dialects.postgresql import insert
 
 app = Flask(__name__)
 app.config.from_object(os.getenv('APP_SETTINGS', devConfig))
@@ -14,7 +14,7 @@ from models import Pet, Customer, CustomerPreference
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    return send_file('templates/index.html')
+    return render_template('index.html')
 
 @app.route('/pets', methods=['POST'])
 def insertPet():
