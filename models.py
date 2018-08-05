@@ -10,13 +10,15 @@ class Pet(db.Model):
     age = db.Column(db.Integer)
     species = db.Column(db.String())
     breed = db.Column(db.String(), nullable=True)
+    adopted = db.Column(db.Integer, nullable=True)
 
-    def __init__(self, name, available_from, age, species, breed):
+    def __init__(self, name, available_from, age, species, breed, adopted):
         self.name = name
         self.available_from = available_from
         self.age = age
         self.species = species
         self.breed = breed
+        self.adopted = adopted
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
@@ -26,9 +28,11 @@ class Customer(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     preference = db.Column(db.Integer, nullable=True)
+    adopted = db.Column(db.Integer, nullable=True)
 
-    def __init__(self, preference):
+    def __init__(self, preference, adopted):
         self.preference = preference
+        self.adopted = adopted
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
