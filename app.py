@@ -95,7 +95,8 @@ def petMatches(ID):
                     cPref = CustomerPreference.query.filter_by(id=each.preference).first()
                     prefObj = {"age": cPref.age, "species": cPref.species, "breed": cPref.breed, "comp": cPref.comparator}
                     if petObj["species"] == prefObj["species"] and petObj["breed"] == prefObj["breed"] and comps[prefObj["comp"]](petObj["age"], prefObj["age"]):
-                        matches.append({"customer": each.id, "preference": prefObj})
+                        if each.adopted is None:
+                            matches.append({"customer": each.id, "preference": prefObj})
                 else:
                     if each.adopted is None:
                         matches.append({"customer": each.id, "preference": {}})
@@ -117,7 +118,8 @@ def customerMatches(ID):
             for pet in pets:
                 petObj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, }
                 if petObj["species"] == cPref["species"] and petObj["breed"] == cPref["breed"] and comps[cPref["comp"]](petObj["age"], cPref["age"]):
-                    matches.append(petObj)
+                    if pet.adopted is None:
+                        matches.append(petObj)
         else:    
             for pet in pets:
                 if pet.adopted is None:
@@ -153,14 +155,12 @@ def getAllCustomers():
     allCustomers = Customer.query.all()
     if len(allCustomers) != 0:
         for customer in allCustomers:
-            if customer.adopted is None:
                 customers.append({"id": customer.id, "preference": customer.preference, "adopted": customer.adopted})
 
     allPets = Pet.query.all()
     if len(allPets) != 0:
         for pet in allPets:
-            if pet.adopted is None:
-                pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed})
+                pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted})
 
     result["customers"] = customers
     result["pets"] = pets
