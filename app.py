@@ -16,6 +16,10 @@ comps = {"<": operator.lt, "<=": operator.le, ">": operator.gt, ">=": operator.g
 def index():
     return render_template('index.html')
 
+@app.route('/subscribe', methods=['GET'])
+def subscribe():
+    return render_template('subscribe.html')
+
 @app.route('/pets', methods=['POST'])
 def insertPet():
     output = []
@@ -31,6 +35,7 @@ def insertPet():
     pet = Pet(name, available_from, age, species, breed, adopted=None)
     db.session.add(pet)
     db.session.commit()
+    
     output.append("Inserted successfully")
     return render_template('index.html', petOutput = output)
 
@@ -138,16 +143,16 @@ def adopt(ID):
         customer.adopted = pet.id
         pet.adopted = customer.id
         db.session.commit()
+        return "Customer " + str(ID) + " successfully adopted Pet " + str(pet_ID) + "!"
     else:
         if not pet:
-            return "Pet " + str(pet_ID) + " was not found"
+             return "Pet " + str(pet_ID) + " was not found"
         if customer.adopted is not None:
             return "Customer " + str(ID) + " has already adopted a pet"
 
-    return "Customer " + str(ID) + " adopted Pet " + str(pet_ID)
 
 @app.route('/get/all', methods=['GET'])
-def getAllCustomers():
+def getAll():
     result = {}
     pets = []
     customers= []
@@ -155,17 +160,48 @@ def getAllCustomers():
     allCustomers = Customer.query.all()
     if len(allCustomers) != 0:
         for customer in allCustomers:
-                customers.append({"id": customer.id, "preference": customer.preference, "adopted": customer.adopted})
+            customers.append({"id": customer.id, "preference": customer.preference, "adopted": customer.adopted})
 
     allPets = Pet.query.all()
     if len(allPets) != 0:
         for pet in allPets:
-                pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted})
+            pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted})
 
     result["customers"] = customers
     result["pets"] = pets
 
     return jsonify(result)
 
+@app.route('/customers/<int:ID>/preference', methods=['GET'])
+def getPreference(ID):
+    customer = Customer.query.filter_by(id=ID).first()
+
+    custPref = customer.preference
+
+    prefObj = {}
+    if custPref is not None:
+        pref = CustomerPreference.query.filter_by(id=custPref).first()
+        prefObj["prefID"] = pref.id
+        prefObj["age"] = pref.age
+        prefObj["species"] = pref.species
+        prefObj["breed"] = pref.breed
+        prefObj["comp"] = pref.comparator
+
+    return jsonify(prefObj)
+
+@app.route('/get/pets', methods=['GET'])
+def getAllPets():
+    pets = []
+    result = {}
+
+    allPets = Pet.query.all()
+    if len(allPets) != 0:
+        for pet in allPets:
+            pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted})
+
+    result["pets"] = pets
+
+    return jsonify(result)
+
 if __name__ == '__main__':
-    app.run()
+    socketio.run(app)

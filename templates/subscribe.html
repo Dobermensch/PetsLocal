@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html ng-app="PetsLocalSubscribe">
+  <head>
+    <title>PetsLocal Subscribe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" media="screen">
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	 <style>
+      .container {
+        max-width: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <div ng-controller="mainController">
+		<div style="width: 100%; display: flex; flex-direction: row;">
+			<div style="width: 33%;">
+				<p>Subscribe as Customer</p>
+				<select ng-model="selectObj.customerSelectValue1" ng-options="x for x in customers"></select>
+				<br>
+				<button style="margin-top: 20px;" ng-click="CustomerClick()" class="btn btn-default">Subscribe</button>
+				<button style="margin-top: 20px;" ng-click="unsubscribeClick()" class="btn btn-default">Unsubscribe</button>
+				<ul>
+					<li ng-repeat="pet in pets1">{[{pet.name}]}</li>
+				<ul>
+			</div>
+		</div>
+	</div>
+    <script src="//code.jquery.com/jquery-2.2.1.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script>
+		var app = angular.module("PetsLocalSubscribe", [])
+		
+		app.controller('mainController', function($scope, $http, $window, $rootScope){
+			var init = function(){
+				$http
+				.get("http://localhost:5000/get/all")
+				.then(function(response){
+					var customers = response.data.customers;
+					
+					$scope.customers = [];
+					
+					for (var x = 0; x < customers.length; x++){
+						if (customers[x].adopted === null){
+							$scope.customers.push(customers[x].id);
+						}
+					}
+				}).catch(function(err){
+					console.log(err);
+				});
+
+			};
+			
+			var evaluate = function(comp, x, y){
+				var val = null;
+				switch(comp){
+					case '>':
+						val = x > y;
+						break;
+					case '>=':
+						val = x >= y;
+						break;
+					case '<':
+						val = x < y;
+						break;
+					case '<=':
+						val = x <= y;
+						break;
+					case '=':
+						val = x == y;
+						break;
+					case '!=':
+						val = x != y;
+						break;
+				}
+				return val;
+			}
+			
+			var timedGet = function(){
+				var pref = JSON.parse(window.sessionStorage.getItem("pref"));
+				$http({
+					url: "http://localhost:5000/get/pets",
+					method: "GET"
+				}).then(function (response) {
+					var arr = response.data.pets;
+					if (arr.length !== $rootScope.pets1.length){
+						$rootScope.pets1 = [];
+						if (Object.keys(pref).length != 0){
+							for (var x = 0; x < arr.length; x++){
+								if (pref.species === arr[x].species && pref.breed === arr[x].breed && evaluate(pref.comp, arr[x].age, pref.age)){
+									$rootScope.pets1.push(arr[x]);
+								}
+							}
+						} else {
+							$rootScope.pets1 = arr;
+						}
+					}
+				}).catch(function(err){
+					//console.log(err);
+				});
+				$scope.timer = setTimeout(timedGet, 1500);
+			};
+			
+			init();
+			
+			$rootScope.pets1 = [];
+			
+			$scope.selectObj = {
+				customerSelectValue1: null,
+			};
+			
+			$scope.unsubscribeClick = function(){
+				clearTimeout($scope.timer);
+			};
+			
+			$window.onbeforeunload =  $scope.unsubscribeClick;
+			
+			$scope.CustomerClick = function(){
+				var val = $scope.selectObj.customerSelectValue1;
+				
+				$http
+				.get("http://localhost:5000/customers/" + val.toString() + "/preference")
+				.then(function(response){
+					window.sessionStorage.setItem("pref", JSON.stringify(response.data));
+					timedGet();
+				})
+				.catch(function(err){
+					console.log(err);
+				})
+			};
+			
+		});
+		app.config(function($interpolateProvider) {
+		  $interpolateProvider.startSymbol('{[{');
+		  $interpolateProvider.endSymbol('}]}');
+		});
+	</script>
+  </body>
+</html>

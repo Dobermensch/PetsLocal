@@ -4,8 +4,7 @@
     <title>PetsLocal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" media="screen">
-	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>	
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-route.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
 	 <style>
       .container {
         max-width: 500px;
@@ -13,90 +12,162 @@
     </style>
   </head>
   <body>
-    <div style="display: flex; flex-direction: row;">
-	<div class="container">
-	  <h1>Insert Pet</h1>
-	  <form role="form" method='POST' action='/pets'>
-		<div class="form-group">
-		  <input type="text" name="name" class="form-control" placeholder="Enter pet name" style="max-width: 300px;" autofocus required>
-		  <input type="date" name="avail" class="form-control" placeholder="DD/MM/YYY" style="max-width: 300px;" autofocus required>
-		  <input type="number" name="age" class="form-control" placeholder="Enter pet age" style="max-width: 300px;" autofocus required>
-		  <h4>Enter Species</h4>
-		  <select ng-model="data.species" name="species" class="form-control" style="max-width: 300px;">
-			  <option value="dog">Dog</option>
-			  <option value="cat">Cat</option>
-			  <option value="rabbit">Rabbit</option>
-		  </select>
-		  <div ng-show="data.species == 'dog'">
-			<h4>Enter Breed</h4>
-			<select ng-model="data.breed" name="breed" class="form-control" style="max-width: 300px;">
-			  <option value="labrador">Labrador</option>
-			  <option value="poodle">Poodle</option>
-			  <option value="spaniel">Spaniel</option>
-			  <option value="terrier">Terrier</option>
-			</select>
-		  </div>
-		</div>
-		<button type="submit" ng-click="data.breed == ''" class="btn btn-default">Submit</button>
-	  </form>
-	  <br>
-	  {% for each in petOutput %}
-		<h4>{{ each }}</h4>
-	  {% endfor %}
-	</div>
-	<div class="container">
-	  <h1>Insert Customer</h1>
-	  <form role="form" method='POST' action='/customers'>
-		<div class="form-group">
-		  <h3>Pet Perference</h3>
-		  <input type="radio" name="preferenceAny" ng-model="data.preference" value="any"> No preference!
-		  <input type="radio" name="preferencePicky" ng-model="data.preference" value="picky"> I'm Picky!
-		  <div ng-show="data.preference == 'picky'">
-			  <h4>Age should be... </h4>
-			  <div>
-				<input type="radio" name="comp" value="<"> Less Than
-				<br>
-				<input type="radio" name="comp" value="<="> Less Than or Equal To
-				<br>
-				<input type="radio" name="comp" value=">"> Greater Than
-				<br>
-				<input type="radio" name="comp" value=">="> Greater Than or Equal To
-				<br>
-				<input type="radio" name="comp" value="="> Equal To
-				<br>				
-				<input type="radio" name="comp" value="!="> Not Equal To
-				<br>
-				<input type="number" placeholder="Insert age here..." name="preferredAge">
-			  </div>
+	<div ng-controller="MainController">
+		<div style="display: flex; flex-direction: row;">
+		<div class="container">
+		  <h1>Insert Pet</h1>
+		  <form role="form" method='POST' action='/pets'>
+			<div class="form-group">
+			  <input type="text" name="name" class="form-control" placeholder="Enter pet name" style="max-width: 300px;" autofocus required>
+			  <input type="date" name="avail" class="form-control" placeholder="DD/MM/YYY" style="max-width: 300px;" autofocus required>
+			  <input type="number" name="age" class="form-control" placeholder="Enter pet age" style="max-width: 300px;" autofocus required>
 			  <h4>Enter Species</h4>
-			  <select ng-model="data.customerSpecies" name="species" class="form-control" style="max-width: 300px;">
+			  <select ng-model="data.species" name="species" class="form-control" style="max-width: 300px;">
 				  <option value="dog">Dog</option>
 				  <option value="cat">Cat</option>
 				  <option value="rabbit">Rabbit</option>
 			  </select>
-			  <div ng-show="data.customerSpecies == 'dog'" >
+			  <div ng-show="data.species == 'dog'">
 				<h4>Enter Breed</h4>
-				<select ng-model="data.customerBreed" name="breed" class="form-control" style="max-width: 300px;">
-					<option value="labrador">Labrador</option>
-					<option value="poodle">Poodle</option>
-					<option value="spaniel">Spaniel</option>
-					<option value="terrier">Terrier</option>
+				<select ng-model="data.breed" name="breed" class="form-control" style="max-width: 300px;">
+				  <option value="labrador">Labrador</option>
+				  <option value="poodle">Poodle</option>
+				  <option value="spaniel">Spaniel</option>
+				  <option value="terrier">Terrier</option>
 				</select>
 			  </div>
-		  </div>
+			</div>
+			<button type="submit" class="btn btn-default">Submit</button>
+		  </form>
+		  <br>
+		  {% for each in petOutput %}
+			<h4>{{ each }}</h4>
+		  {% endfor %}
 		</div>
-		<button type="submit" class="btn btn-default">Submit</button>
-	  </form>
-	  <br>
-	  {% for each in customerOutput %}
-		<h4>{{ each }}</h4>
-	  {% endfor %}
+		<div class="container">
+		  <h1>Insert Customer</h1>
+		  <form role="form" method='POST' action='/customers'>
+			<div class="form-group">
+			  <h3>Pet Perference</h3>
+			  <input type="radio" name="preferenceAny" ng-model="data.preference" value="any"> No preference!
+			  <input type="radio" name="preferencePicky" ng-model="data.preference" value="picky"> I'm Picky!
+			  <div ng-show="data.preference == 'picky'">
+				  <h4>Age should be... </h4>
+				  <div>
+					<input type="radio" name="comp" value="<"> Less Than
+					<br>
+					<input type="radio" name="comp" value="<="> Less Than or Equal To
+					<br>
+					<input type="radio" name="comp" value=">"> Greater Than
+					<br>
+					<input type="radio" name="comp" value=">="> Greater Than or Equal To
+					<br>
+					<input type="radio" name="comp" value="="> Equal To
+					<br>				
+					<input type="radio" name="comp" value="!="> Not Equal To
+					<br>
+					<input type="number" placeholder="Insert age here..." name="preferredAge">
+				  </div>
+				  <h4>Enter Species</h4>
+				  <select ng-model="data.customerSpecies" name="species" class="form-control" style="max-width: 300px;">
+					  <option value="dog">Dog</option>
+					  <option value="cat">Cat</option>
+					  <option value="rabbit">Rabbit</option>
+				  </select>
+				  <div ng-show="data.customerSpecies == 'dog'" >
+					<h4>Enter Breed</h4>
+					<select ng-model="data.customerBreed" name="breed" class="form-control" style="max-width: 300px;">
+						<option value="labrador">Labrador</option>
+						<option value="poodle">Poodle</option>
+						<option value="spaniel">Spaniel</option>
+						<option value="terrier">Terrier</option>
+					</select>
+				  </div>
+			  </div>
+			</div>
+			<button type="submit" class="btn btn-default">Submit</button>
+		  </form>
+		  <br>
+		  {% for each in customerOutput %}
+			<h4>{{ each }}</h4>
+		  {% endfor %}
+		</div>
+	</div>
+	<div style="display: flex; flex-direction: row;">
+		<div style="padding-left: 100px; width: 500px;">
+			<h3>Adoption</h3>
+			<h4>Customer</h4>
+			<select ng-model="selectObj.customerSelectValue" ng-options="x for x in customers"></select>
+			<h4>Adopts Pet</h4>
+			<select ng-model="selectObj.petSelectValue" ng-options="x for x in pets"></select>
+			<br>
+			<button style="margin-top: 20px;" ng-click="AdoptClick()" class="btn btn-default">Submit</button>
+			<br>
+			<h4>{[{adoptHeading.returnedHeading}]}</h4>
+		</div>
 	</div>
 </div>
     <script src="//code.jquery.com/jquery-2.2.1.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 	<script>
-		var app = angular.module("PetsLocalApp", []);
+		var app = angular.module("PetsLocalApp", [])
+			.controller('MainController', function($scope, $http){
+				var init = function(){
+					$http
+					.get("http://localhost:5000/get/all")
+					.then(function(response){
+						var customers = response.data.customers;
+						var pets = response.data.pets;
+						
+						$scope.customers = [];
+						$scope.pets = [];
+						
+						for (var x = 0; x < customers.length; x++){
+							if (customers[x].adopted === null){
+								$scope.customers.push(customers[x].id);
+							}
+						}
+						
+						for (var x = 0; x < pets.length; x++){
+							if (pets[x].adopted === null){
+								$scope.pets.push(pets[x].id);
+							}
+						}
+						
+					}).catch(function(err){
+						console.log(err);
+					});
+				}
+				init();
+				
+				$scope.selectObj = {
+					customerSelectValue: null,
+					petSelectValue: null
+				};
+				
+				$scope.adoptHeading = {
+					returnedHeading: null
+				};
+				
+				$scope.AdoptClick = function(){
+					var customer = $scope.selectObj.customerSelectValue.toString();
+					var pet = $scope.selectObj.petSelectValue.toString();
+					
+					$http
+					.get("http://localhost:5000/customers/" + customer + "/adopt?pet_id=" + pet)
+					.then(function(response){
+						$scope.adoptHeading.returnedHeading = response.data;
+					}).catch(function(err){
+						console.log(err);
+					});
+				};
+				
+			});
+			
+			app.config(function($interpolateProvider) {
+			  $interpolateProvider.startSymbol('{[{');
+			  $interpolateProvider.endSymbol('}]}');
+			});
 	</script>
   </body>
 </html>
