@@ -42,7 +42,10 @@ def insertPet():
 @app.route('/pets/<int:ID>', methods=['GET'])
 def getPets(ID):
     pet = Pet.query.filter_by(id=ID).first()
-    obj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted}
+    if pet is not None:
+        obj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted}
+    else:
+        return "That pet does not exist!"
     
     return jsonify(obj)
 
@@ -76,18 +79,26 @@ def insertCustomer():
 @app.route('/customers/<int:ID>', methods=['GET'])
 def getCustomer(ID):
     customer = Customer.query.filter_by(id=ID).first()
-    if customer.preference is not None:
-        customerPreference = CustomerPreference.query.filter_by(id=customer.preference).first()
-        customerPreference = {"age": customerPreference.age, "species": customerPreference.species, "breed": customerPreference.breed, "comp": customerPreference.comparator}
+
+    if customer is not None:
+        if customer.preference is not None:
+            customerPreference = CustomerPreference.query.filter_by(id=customer.preference).first()
+            customerPreference = {"age": customerPreference.age, "species": customerPreference.species, "breed": customerPreference.breed, "comp": customerPreference.comparator}
+        else:
+            customerPreference = None
+        obj = {"id": customer.id, "perference": customerPreference, "adopted": customer.adopted}
     else:
-        customerPreference = None
-    obj = {"id": customer.id, "perference": customerPreference, "adopted": customer.adopted}
+        return "That customer does not exist!"
 
     return jsonify(obj)
         
 @app.route('/pets/<int:ID>/matches', methods=['GET'])
 def petMatches(ID):
     pet = Pet.query.filter_by(id=ID).first()
+
+    if pet is None:
+        return "That pet does not exist!"
+    
     petObj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted}
 
     if petObj["adopted"] is None:
@@ -113,6 +124,10 @@ def petMatches(ID):
 @app.route('/customers/<int:ID>/matches', methods=['GET'])
 def customerMatches(ID):
     customer = Customer.query.filter_by(id=ID).first()
+
+    if customer is None:
+        return "That customer does not exist!"
+    
     matches = []
     pets = Pet.query.all()
 
@@ -139,6 +154,12 @@ def adopt(ID):
     pet_ID = request.args["pet_id"]
     customer = Customer.query.filter_by(id=ID).first()
     pet = Pet.query.filter_by(id=pet_ID).first()
+
+    if customer is None:
+        return "That customer does not exist!"
+    if pet is None:
+        return "That pet does not exist!"
+    
     if pet and customer.adopted is None:
         customer.adopted = pet.id
         pet.adopted = customer.id
@@ -175,6 +196,9 @@ def getAll():
 @app.route('/customers/<int:ID>/preference', methods=['GET'])
 def getPreference(ID):
     customer = Customer.query.filter_by(id=ID).first()
+
+    if customer is None:
+        return "That customer does not exist!"
 
     custPref = customer.preference
 
