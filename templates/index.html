@@ -114,7 +114,7 @@
 			.controller('MainController', function($scope, $http){
 				var init = function(){
 					$http
-					.get("http://petslocal-stage.herokuapp.com/get/all")
+					.get("http://petslocal-pro.herokuapp.com/get/all")
 					.then(function(response){
 						var customers = response.data.customers;
 						var pets = response.data.pets;
@@ -154,7 +154,7 @@
 					var pet = $scope.selectObj.petSelectValue.toString();
 					
 					$http
-					.get("http://petslocal-stage.herokuapp.com/customers/" + customer + "/adopt?pet_id=" + pet)
+					.get("http://petslocal-pro.herokuapp.com/customers/" + customer + "/adopt?pet_id=" + pet)
 					.then(function(response){
 						$scope.adoptHeading.returnedHeading = response.data;
 					}).catch(function(err){
