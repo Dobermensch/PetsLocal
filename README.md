@@ -1,4 +1,4 @@
-# Long Code Test for GoGoVan - *Finished extension 1* 
+# Long Code Test for GoGoVan - *Finished option 1 of extension 2* 
 
 [Requirements](https://github.com/gilbertwat/Back-End-Developer-Interview-Questions/blob/master/long-code-test.md)
 
