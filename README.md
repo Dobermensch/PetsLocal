@@ -20,7 +20,7 @@ Visit petslocal-pro.herokuapp.com to see it in action although **it is advised t
     ```
 5. finally run the app using
     ```
-    python manage.py runserver
+    python app.py
     ```
 6. Use Chrome with plugin/extension: "Allow-Control-Allow-Origin: *" by vitvad ([Get plugin](https://chrome.google.com/webstore/detail/allow-control-allow-origi/nlfbmbojpeacfghkpbjhddihlkkiljbi)) in case of CORS errors 
 
