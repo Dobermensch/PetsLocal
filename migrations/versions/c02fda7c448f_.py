@@ -1,13 +1,13 @@
 """empty message
 
-Revision ID: 491d7d114c76
+Revision ID: c02fda7c448f
 Revises: None
-Create Date: 2018-08-05 20:25:51.692643
+Create Date: 2018-08-13 21:45:06.533595
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '491d7d114c76'
+revision = 'c02fda7c448f'
 down_revision = None
 
 from alembic import op
@@ -20,6 +20,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('preference', sa.Integer(), nullable=True),
     sa.Column('adopted', sa.Integer(), nullable=True),
+    sa.Column('coordinates', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('Pets',
@@ -30,6 +31,7 @@ def upgrade():
     sa.Column('species', sa.String(), nullable=True),
     sa.Column('breed', sa.String(), nullable=True),
     sa.Column('adopted', sa.Integer(), nullable=True),
+    sa.Column('coordinates', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('Preferences',

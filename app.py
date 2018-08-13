@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
+from math import sqrt
 from config import DevelopmentConfig as devConfig
 import operator
 
@@ -13,6 +14,18 @@ db = SQLAlchemy(app)
 
 from models import *
 comps = {"<": operator.lt, "<=": operator.le, ">": operator.gt, ">=": operator.ge, "=": operator.eq, "!=": operator.ne}
+
+def calcDistance(petC, custC):
+    petCoords = petC.split(",")
+    petX = float(petCoords[0])
+    petY = float(petCoords[1])
+
+    custCoords = custC.split(",")
+    custX = float(custCoords[0])
+    custY = float(custCoords[1])
+
+    distance = sqrt(((custX - petX)**2) + ((custY - petY)**2))
+    return distance
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -33,12 +46,13 @@ def insertPet():
         breed = request.form['breed']
     else:
         breed = None
+    coordinates = str(request.form['xcoor']) + "," + str(request.form['ycoor'])
     
-    pet = Pet(name, available_from, age, species, breed, adopted=None)
+    pet = Pet(name, available_from, age, species, breed, coordinates, adopted=None)
     db.session.add(pet)
     db.session.commit()
 
-    socketio.emit('pet_added', {"name": name, "avail": available_from, "age": age, "species": species, "breed": breed}, broadcast=True)
+    socketio.emit('pet_added', {"name": name, "avail": available_from, "age": age, "species": species, "breed": breed, "coordinates": coordinates}, broadcast=True)
     
     output.append("Inserted successfully")
     return render_template('index.html', petOutput = output)
@@ -56,12 +70,13 @@ def getPets(ID):
 @app.route('/customers', methods=['POST'])
 def insertCustomer():
     output = []
-    print(request.form)
+    coordinates = str(request.form['xcoor']) + "," + str(request.form['ycoor'])
     if 'preferencePicky' in request.form:
         age = request.form['preferredAge']
         comp = request.form['comp']
         species = request.form['species']
         breed = request.form['breed']
+        
 
         customerPreference = CustomerPreference(age, species, breed, comp)
         db.session.add(customerPreference)
@@ -72,7 +87,7 @@ def insertCustomer():
     except UnboundLocalError:
         preference = None
 
-    customer = Customer(preference, adopted=None)
+    customer = Customer(preference, coordinates, adopted=None)
     db.session.add(customer)
     db.session.commit()
 
@@ -90,7 +105,7 @@ def getCustomer(ID):
             customerPreference = {"age": customerPreference.age, "species": customerPreference.species, "breed": customerPreference.breed, "comp": customerPreference.comparator}
         else:
             customerPreference = None
-        obj = {"id": customer.id, "perference": customerPreference, "adopted": customer.adopted}
+        obj = {"id": customer.id, "perference": customerPreference, "adopted": customer.adopted, "coordinates": customer.coordinates}
     else:
         return "That customer does not exist!"
 
@@ -103,7 +118,7 @@ def petMatches(ID):
     if pet is None:
         return "That pet does not exist!"
     
-    petObj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted}
+    petObj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted, "coordinates": pet.coordinates}
 
     if petObj["adopted"] is None:
         matches = []
@@ -116,11 +131,13 @@ def petMatches(ID):
                     prefObj = {"age": cPref.age, "species": cPref.species, "breed": cPref.breed, "comp": cPref.comparator}
                     if petObj["species"] == prefObj["species"] and petObj["breed"] == prefObj["breed"] and comps[prefObj["comp"]](petObj["age"], prefObj["age"]):
                         if each.adopted is None:
-                            matches.append({"customer": each.id, "preference": prefObj})
+                            matches.append({"customer": each.id, "coordinates": each.coordinates, "preference": prefObj, "distance": calcDistance(petObj["coordinates"], each.coordinates)})
                 else:
                     if each.adopted is None:
-                        matches.append({"customer": each.id, "preference": {}})
+                        matches.append({"customer": each.id, "coordinates": each.coordinates, "preference": {}, "distance": calcDistance(petObj["coordinates"], each.coordinates)})
 
+        matches = sorted(matches, key=lambda k: k["distance"]) 
+        
         return jsonify(matches)
     else:
         return "Pet " + str(ID) + " has already been adopted by a customer so it has no matching customers" 
@@ -140,14 +157,16 @@ def customerMatches(ID):
             cPref = CustomerPreference.query.filter_by(id=customer.preference).first()
             cPref = {"species": cPref.species, "breed": cPref.breed, "age": cPref.age, "comp": cPref.comparator}
             for pet in pets:
-                petObj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, }
+                petObj = {"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "coordinates": pet.coordinates, "distance": calcDistance(pet.coordiantes, customer.coordinates)}
                 if petObj["species"] == cPref["species"] and petObj["breed"] == cPref["breed"] and comps[cPref["comp"]](petObj["age"], cPref["age"]):
                     if pet.adopted is None:
                         matches.append(petObj)
         else:    
             for pet in pets:
                 if pet.adopted is None:
-                    matches.append({"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed})
+                    matches.append({"name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "coordinates": pet.coordinates, "distance": calcDistance(pet.coordinates, customer.coordinates)})
+
+        matches = sorted(matches, key=lambda k: k["distance"])
 
         return jsonify(matches)
     else:
@@ -185,12 +204,12 @@ def getAll():
     allCustomers = Customer.query.all()
     if len(allCustomers) != 0:
         for customer in allCustomers:
-            customers.append({"id": customer.id, "preference": customer.preference, "adopted": customer.adopted})
+            customers.append({"id": customer.id, "preference": customer.preference, "adopted": customer.adopted, "coordinates": customer.coordinates})
 
     allPets = Pet.query.all()
     if len(allPets) != 0:
         for pet in allPets:
-            pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted})
+            pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted, "coordinates": pet.coordinates})
 
     result["customers"] = customers
     result["pets"] = pets
@@ -225,12 +244,11 @@ def getAllPets():
     allPets = Pet.query.all()
     if len(allPets) != 0:
         for pet in allPets:
-            pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted})
+            pets.append({"id": pet.id, "name": pet.name, "available_from": pet.available_from, "age": pet.age, "species": pet.species, "breed": pet.breed, "adopted": pet.adopted, "coordinates": pet.coordinates})
 
     result["pets"] = pets
 
     return jsonify(result)
 
 if __name__ == '__main__':
-##    app.run()
     socketio.run(app)

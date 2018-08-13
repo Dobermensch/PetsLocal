@@ -21,6 +21,13 @@
 			  <input type="text" name="name" class="form-control" placeholder="Enter pet name" style="max-width: 300px;" autofocus required>
 			  <input type="date" name="avail" class="form-control" placeholder="DD/MM/YYY" style="max-width: 300px;" autofocus required>
 			  <input type="number" name="age" class="form-control" placeholder="Enter pet age" style="max-width: 300px;" autofocus required>
+			  <div>
+				  <h4>coordinates</h4>
+				  <div style="display: flex; flex-direction: row;">
+					 <p>X</p> <input type="number" name="xcoor" class="form-control" placeholder="x" style="max-width: 100px;" autofocus required>
+					 <p>Y</p> <input type="number" name="ycoor" class="form-control" placeholder="y" style="max-width: 100px;" autofocus required>
+				  </div>
+			  </div>
 			  <h4>Enter Species</h4>
 			  <select ng-model="data.species" name="species" class="form-control" style="max-width: 300px;">
 				  <option value="dog">Dog</option>
@@ -48,6 +55,13 @@
 		  <h1>Insert Customer</h1>
 		  <form role="form" method='POST' action='/customers'>
 			<div class="form-group">
+			  <div>
+				  <h4>coordinates</h4>
+				  <div style="display: flex; flex-direction: row;">
+					 <p>X</p> <input type="number" name="xcoor" class="form-control" placeholder="x" style="max-width: 100px;" autofocus required>
+					 <p>Y</p> <input type="number" name="ycoor" class="form-control" placeholder="y" style="max-width: 100px;" autofocus required>
+				  </div>
+			  </div>
 			  <h3>Pet Perference</h3>
 			  <input type="radio" name="preferenceAny" ng-model="data.preference" value="any"> No preference!
 			  <input type="radio" name="preferencePicky" ng-model="data.preference" value="picky"> I'm Picky!
