@@ -1,15 +1,17 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import SocketIO, emit
 from config import DevelopmentConfig as devConfig
 import operator
 
 app = Flask(__name__)
 app.config.from_object(os.getenv('APP_SETTINGS', devConfig))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+socketio = SocketIO(app)
 db = SQLAlchemy(app)
 
-from models import Pet, Customer, CustomerPreference
+from models import *
 comps = {"<": operator.lt, "<=": operator.le, ">": operator.gt, ">=": operator.ge, "=": operator.eq, "!=": operator.ne}
 
 @app.route('/', methods=['GET', 'POST'])
@@ -35,6 +37,8 @@ def insertPet():
     pet = Pet(name, available_from, age, species, breed, adopted=None)
     db.session.add(pet)
     db.session.commit()
+
+    socketio.emit('pet_added', {"name": name, "avail": available_from, "age": age, "species": species, "breed": breed}, broadcast=True)
     
     output.append("Inserted successfully")
     return render_template('index.html', petOutput = output)
@@ -228,4 +232,5 @@ def getAllPets():
     return jsonify(result)
 
 if __name__ == '__main__':
-    app.run()
+##    app.run()
+    socketio.run(app)

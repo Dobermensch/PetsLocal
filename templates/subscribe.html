@@ -28,13 +28,52 @@
 	</div>
     <script src="//code.jquery.com/jquery-2.2.1.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 	<script>
 		var app = angular.module("PetsLocalSubscribe", [])
 		
-		app.controller('mainController', function($scope, $http, $window, $rootScope){
+		app.factory('socket', function ($rootScope) {
+		  var socket = io.connect();
+		  return {
+			on: function (eventName, callback) {
+			  socket.on(eventName, function () {  
+				var args = arguments;
+				$rootScope.$apply(function () {
+				  callback.apply(socket, args);
+				});
+			  });
+			},
+			emit: function (eventName, data, callback) {
+			  socket.emit(eventName, data, function () {
+				var args = arguments;
+				$rootScope.$apply(function () {
+				  if (callback) {
+					callback.apply(socket, args);
+				  }
+				});
+			  })
+			}
+		  };
+		});
+		
+		app.controller('mainController', function($scope, $http, $window, $rootScope, socket){
 			var init = function(){
+			
+				socket.on('pet_added', function(result){
+					pet = result;
+					var pref = JSON.parse(window.sessionStorage.getItem("pref"));
+					if (Object.keys(pref).length != 0)
+					{
+						if (pref.species === pet.species && pref.breed === pet.breed && evaluate(pref.comp, pet.age, pref.age)){
+							$rootScope.pets1.push(pet);
+						}
+					} else {
+						$rootScope.pets1.push(pet);
+					}
+				});
+				
 				$http
-				.get("http://petslocal-pro.herokuapp.com/get/all")
+				.get("http://localhost:5000/get/all")
 				.then(function(response){
 					var customers = response.data.customers;
 					
@@ -76,31 +115,6 @@
 				return val;
 			}
 			
-			var timedGet = function(){
-				var pref = JSON.parse(window.sessionStorage.getItem("pref"));
-				$http({
-					url: "http://petslocal-pro.herokuapp.com/get/pets",
-					method: "GET"
-				}).then(function (response) {
-					var arr = response.data.pets;
-					if (arr.length !== $rootScope.pets1.length){
-						$rootScope.pets1 = [];
-						if (Object.keys(pref).length != 0){
-							for (var x = 0; x < arr.length; x++){
-								if (pref.species === arr[x].species && pref.breed === arr[x].breed && evaluate(pref.comp, arr[x].age, pref.age)){
-									$rootScope.pets1.push(arr[x]);
-								}
-							}
-						} else {
-							$rootScope.pets1 = arr;
-						}
-					}
-				}).catch(function(err){
-					//console.log(err);
-				});
-				$scope.timer = setTimeout(timedGet, 1500);
-			};
-			
 			init();
 			
 			$rootScope.pets1 = [];
@@ -110,7 +124,7 @@
 			};
 			
 			$scope.unsubscribeClick = function(){
-				clearTimeout($scope.timer);
+				window.sessionStorage.setItem("pref", JSON.stringify({}));
 			};
 			
 			$window.onbeforeunload =  $scope.unsubscribeClick;
@@ -119,10 +133,9 @@
 				var val = $scope.selectObj.customerSelectValue1;
 				
 				$http
-				.get("http://petslocal-pro.herokuapp.com/customers/" + val.toString() + "/preference")
+				.get("http://localhost:5000/customers/" + val.toString() + "/preference")
 				.then(function(response){
 					window.sessionStorage.setItem("pref", JSON.stringify(response.data));
-					timedGet();
 				})
 				.catch(function(err){
 					console.log(err);
